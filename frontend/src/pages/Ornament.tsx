@@ -86,8 +86,44 @@ export default function Ornament() {
       </Stack>
       <Canvas
         savePainting={(data) => {
+          console.log("Data received from Canvas:", data); // Debugging log
           setCanvasData(data);
-          saveOrnament();
+          const ornamentId = `ornament-${Math.floor(Math.random() * 22)}`; // Generate a valid ID based on ornamentPositions indices
+          console.log("Payload sent to backend:", {
+            username,
+            sessionId: id,
+            ornamentData: data,
+            id: ornamentId,
+          }); // Debugging log
+          fetch("http://localhost:3000/api/save-ornament", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              username,
+              sessionId: id,
+              ornamentData: data,
+              id: ornamentId, // Include the ID in the payload
+            }),
+          })
+            .then((response) => {
+              if (response.ok) {
+                setModalContent({
+                  title: "Zapisano pomyślnie",
+                  text: "Bombka została zapisana pomyślnie. Możesz ją znaleźć na Gorasuloince!",
+                });
+                open(); // Only open modal on success
+              } else {
+                setModalContent({
+                  title: "Nie udało się zapisać",
+                  text: "Niestety nie udało się zapisać bombki, proszę spróbować ponownie później.",
+                });
+              }
+            })
+            .catch((error) => {
+              console.error("Error saving ornament:", error);
+            });
           open();
         }}
       />
@@ -96,9 +132,10 @@ export default function Ornament() {
         onClose={close}
         size="md"
         title={
-          <Title
+          <Text
             tt="uppercase"
             style={{
+              lineHeight: 1,
               color:
                 "light-dark(var(--mantine-color-red-9), var(--mantine-color-red-5))",
               fontSize: "48px",
@@ -107,7 +144,7 @@ export default function Ornament() {
             }}
           >
             {modalContent.title}
-          </Title>
+          </Text>
         }
         centered
       >

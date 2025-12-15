@@ -1,20 +1,36 @@
-import { Box, Center, Image, Text, Title } from "@mantine/core";
+import { Badge, Box, Center, Image, Stack, Text, Title } from "@mantine/core";
 import axios from "axios";
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { o } from "react-router/dist/development/index-react-server-client-CCjKYJTH";
 import snowVideo from "../assets/snow.mov";
 
-// const fetchChristmasTree = async () => {
-//   try {
-//     const response = await axios.get("/api/christmas-tree");
-//     return response.data.imageUrl;
-//   } catch (error) {
-//     console.error("Failed to fetch Christmas tree:", error);
-//     return null;
-//   }
-// };
+interface Ornament {
+  id: string;
+  username: string;
+  imageData: string;
+  position: {
+    top: string;
+    left: string;
+  };
+}
 
 export default function Tree() {
-  //   const imageUrl = await fetchChristmasTree();
+  const treeRef = useRef<HTMLDivElement>(null);
+  const [ornaments, setOrnaments] = useState<Ornament[]>([]);
+
+  useEffect(() => {
+    // Fetch ornament data from the backend
+    axios
+      .get("http://localhost:3000/api/tree") // Updated to match backend endpoint
+      .then((response) => {
+        // Directly set the ornaments array
+        setOrnaments(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching ornaments:", error);
+        alert("Failed to load ornaments. Please try again later."); // User-friendly error message
+      });
+  }, []);
 
   return (
     <Box>
@@ -35,19 +51,19 @@ export default function Tree() {
           loop
           muted
           style={{
-            position: "fixed", // Changed to fixed to ensure it covers the entire viewport
+            position: "fixed",
             top: 0,
             left: 0,
-            width: "100vw", // Ensures it spans the full width of the viewport
-            height: "100vh", // Ensures it spans the full height of the viewport
+            width: "100vw",
+            height: "100vh",
             objectFit: "cover",
           }}
         />
       </Box>
       <Box
         style={{
-          position: "relative", // Ensures the second box is positioned on top of the video
-          zIndex: 1, // Places it above the video
+          position: "relative",
+          zIndex: 1,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -57,7 +73,6 @@ export default function Tree() {
         }}
       >
         <Title
-          //   tt="uppercase"
           style={{
             color: "#4278ad",
             fontSize: "32px",
@@ -68,28 +83,56 @@ export default function Tree() {
         >
           Gorasuloinka
         </Title>
-        <Image
-          src="src/assets/treebase.png"
-          alt="Gorasul Logo"
-          radius="md"
+        <div
+          ref={treeRef}
           style={{
-            maxHeight: "80vh",
-            width: "auto",
-            maxWidth: "90vw",
+            position: "relative",
+            display: "inline-block",
           }}
-        />
-      </Box>
-      {/* <Center style={{ height: "80vh" }}>
-        {imageUrl ? (
+        >
           <Image
-            src={imageUrl}
-            alt="Christmas Tree"
-            style={{ maxHeight: "80vh" }}
+            src="src/assets/treebase.png"
+            alt="Gorasul Logo"
+            radius="md"
+            style={{
+              maxHeight: "80vh",
+              width: "auto",
+              maxWidth: "90vw",
+            }}
           />
-        ) : (
-          <Text>Failed to load Christmas Tree</Text>
-        )}
-      </Center> */}
+          {ornaments.map((ornament) => {
+            if (
+              !ornament.position ||
+              !ornament.position.top ||
+              !ornament.position.left
+            ) {
+              console.warn("Invalid ornament position:", ornament);
+              return null; // Skip rendering invalid ornaments
+            }
+
+            return (
+              <Stack
+                key={ornament.id}
+                style={{
+                  position: "absolute",
+                  top: ornament.position.top,
+                  left: ornament.position.left,
+                }}
+              >
+                <Badge size="xs" color="red">
+                  {ornament.username}
+                </Badge>
+                <Image
+                  src={ornament.imageData}
+                  alt={`Bombka: ${ornament.username}`}
+                  radius="md"
+                  style={{ width: "50px", height: "50px" }}
+                />
+              </Stack>
+            );
+          })}
+        </div>
+      </Box>
     </Box>
   );
 }

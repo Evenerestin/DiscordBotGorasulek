@@ -104,6 +104,18 @@ const Canvas = ({ savePainting }: { savePainting: (data: string) => void }) => {
     const canvas = canvasRef.current;
     if (!canvas) return; // Check if canvas is null
 
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return; // Check if context is null
+
+    // Check if the canvas is empty
+    const empty = !ctx
+      .getImageData(0, 0, canvas.width, canvas.height)
+      .data.some((channel) => channel !== 0);
+    if (empty) {
+      console.error("Canvas is empty. Nothing to save.");
+      return;
+    }
+
     const dataURL = canvas.toDataURL();
     console.log("Canvas Data URL:", dataURL); // Debugging log
     savePainting(dataURL); // Pass the canvas data to the parent component
