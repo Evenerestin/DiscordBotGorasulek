@@ -19,13 +19,13 @@ const PORT = 3000;
 
 // Middleware
 app.use(express.json({ limit: "10mb" }));
-// app.use(
-//   cors({
-//     origin: "http://localhost:5173",
-//     methods: ["GET", "POST", "PUT", "DELETE"],
-//     credentials: true,
-//   })
-// );
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "https://gorasul.pl"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
 
 // Routes
 app.post("/api/save-ornament", saveOrnament);
@@ -67,9 +67,7 @@ client.on("interactionCreate", async (interaction) => {
     // Write the updated sessions back to the file
     await fs.writeJson(sessionsPath, sessions);
 
-    const link = `/bombka/${encodeURIComponent(
-      serverUsername
-    )}/${sessionId}`;
+    const link = `/bombka/${encodeURIComponent(serverUsername)}/${sessionId}`;
 
     await interaction.reply({
       content: `🎨 Link do twojej sesji generatora: ${link}`,
