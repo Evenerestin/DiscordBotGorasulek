@@ -3,6 +3,7 @@ import {
   Box,
   Button,
   Card,
+  FileButton,
   Group,
   Modal,
   Stack,
@@ -13,22 +14,61 @@ import {
 import { useDisclosure } from "@mantine/hooks";
 import {
   IconBrush,
+  IconCheck,
   IconChevronRight,
   IconColorPicker,
   IconEraser,
+  IconFile,
+  IconImageInPicture,
+  IconPolaroid,
   IconTrash,
+  IconX,
 } from "@tabler/icons-react";
+import Konva from "konva";
+import { Layer } from "konva/lib/Layer";
 import React, { useEffect, useRef, useState } from "react";
+import {
+  Image as ReactImage,
+  Layer as ReactLayer,
+  Stage,
+  Transformer,
+} from "react-konva";
 import BrushOptions from "./BrushOptions";
 import { default as ColorPalette } from "./ColorPalette";
 
 const Canvas = ({ savePainting }: { savePainting: (data: string) => void }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const stageRef = useRef<any>(null);
+  const transformerRef = useRef<any>(null);
+  const imageRef = useRef<any>(null);
   const [color, setColor] = useState("#000000");
   const [brushSize, setBrushSize] = useState(5);
   const [opened, { open, close }] = useDisclosure(false);
   const [tool, setTool] = useState("brush");
   const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
+  const [file, setFile] = useState<File | null>(null);
+  const [editMode, setEditMode] = useState(false);
+  const resetRef = useRef<() => void>(null);
+  const [imageLayers, setImageLayers] = useState<
+    Array<{
+      id: string;
+      image: HTMLImageElement;
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    }>
+  >([]);
+
+  const clearFile = () => {
+    setFile(null);
+    setImageLayers([]);
+    setEditMode(false);
+    if (resetRef.current) {
+      resetRef.current(); // Explicitly reset the FileButton
+    }
+    clearCanvas(); // Clear the canvas when the file is cleared
+  };
 
   const computedColorScheme = useComputedColorScheme("light", {
     getInitialValueInEffect: true,
@@ -107,18 +147,87 @@ const Canvas = ({ savePainting }: { savePainting: (data: string) => void }) => {
     const ctx = canvas.getContext("2d");
     if (!ctx) return; // Check if context is null
 
-    // Check if the canvas is empty
-    const empty = !ctx
-      .getImageData(0, 0, canvas.width, canvas.height)
-      .data.some((channel) => channel !== 0);
-    if (empty) {
+    // Get the current canvas data
+    const currentImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    
+    // Create a fresh canvas with just the background to compare
+    const blankCanvas = document.createElement("canvas");
+    blankCanvas.width = canvas.width;
+    blankCanvas.height = canvas.height;
+    const blankCtx = blankCanvas.getContext("2d");
+    if (!blankCtx) return;
+    
+    blankCtx.fillStyle = backgroundColor;
+    blankCtx.fillRect(0, 0, canvas.width, canvas.height);
+    const blankImageData = blankCtx.getImageData(0, 0, canvas.width, canvas.height);
+
+    // Compare: if current data is different from blank, user has drawn something
+    const hasDrawing = !currentImageData.data.every((val, i) => val === blankImageData.data[i]);
+    
+    if (!hasDrawing && imageLayers.length === 0) {
       console.error("Canvas is empty. Nothing to save.");
       return;
     }
 
-    const dataURL = canvas.toDataURL();
-    console.log("Canvas Data URL:", dataURL); // Debugging log
-    savePainting(dataURL); // Pass the canvas data to the parent component
+    // Create a temporary canvas for combining all layers
+    const finalCanvas = document.createElement("canvas");
+    finalCanvas.width = canvas.width;
+    finalCanvas.height = canvas.height;
+    const finalCtx = finalCanvas.getContext("2d");
+    if (!finalCtx) return;
+
+    // First, draw the Konva stage (image layer) if it exists
+    if (imageLayers.length > 0 && stageRef.current) {
+      const stageDataURL = stageRef.current.toDataURL({
+        mimeType: "image/png",
+      });
+      const stageImage = new Image();
+      stageImage.onload = () => {
+        finalCtx.drawImage(stageImage, 0, 0);
+        // Then draw the canvas (drawing layer) on top
+        finalCtx.drawImage(canvas, 0, 0);
+        exportFinalImage(finalCanvas);
+      };
+      stageImage.src = stageDataURL;
+    } else {
+      // If no image layer, just use the canvas
+      exportFinalImage(canvas);
+    }
+  };
+
+  const exportFinalImage = (canvasToExport: HTMLCanvasElement) => {
+    // Use Konva for better image export
+    const stage = new Konva.Stage({
+      container: document.createElement("div"),
+      width: canvasToExport.width,
+      height: canvasToExport.height,
+    });
+
+    const layer = new Konva.Layer();
+    stage.add(layer);
+
+    // Create Konva image from the canvas
+    const image = new Konva.Image({
+      image: canvasToExport,
+      x: 0,
+      y: 0,
+      width: canvasToExport.width,
+      height: canvasToExport.height,
+    });
+    layer.add(image);
+    layer.draw();
+
+    // Export with Konva (better quality and options)
+    const dataURL = stage.toDataURL({
+      mimeType: "image/png",
+      quality: 1,
+      pixelRatio: 2, // Higher resolution export
+    });
+
+    // Clean up
+    stage.destroy();
+
+    savePainting(dataURL); // Call the savePainting function
   };
 
   const cursorStyle = {
@@ -145,6 +254,72 @@ const Canvas = ({ savePainting }: { savePainting: (data: string) => void }) => {
 
     setCursorPosition({ x, y }); // Update cursor position relative to the canvas
   };
+
+  const handleFileInput = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new window.Image();
+      img.src = event.target?.result as string;
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        // Calculate dimensions to fit within canvas while maintaining aspect ratio
+        const maxWidth = 250;
+        const maxHeight = 250;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth || height > maxHeight) {
+          const aspectRatio = width / height;
+          if (width > maxWidth) {
+            width = maxWidth;
+            height = width / aspectRatio;
+          }
+          if (height > maxHeight) {
+            height = maxHeight;
+            width = height * aspectRatio;
+          }
+        }
+
+        // Position image at the center of the canvas
+        const x = (400 - width) / 2;
+        const y = (400 - height) / 2;
+
+        // Only allow one image - replace the existing one
+        setImageLayers([
+          {
+            id: `layer-${Date.now()}`,
+            image: img,
+            x,
+            y,
+            width,
+            height,
+          },
+        ]);
+      };
+      img.onerror = () => {
+        console.error("Failed to load image");
+      };
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const selectImage = () => {
+    setEditMode(true);
+    if (imageRef.current && transformerRef.current) {
+      transformerRef.current.nodes([imageRef.current]);
+      transformerRef.current.getLayer().batchDraw();
+    }
+  };
+
+  useEffect(() => {
+    if (editMode && imageRef.current && transformerRef.current) {
+      transformerRef.current.nodes([imageRef.current]);
+      transformerRef.current.getLayer().batchDraw();
+    } else if (!editMode && transformerRef.current) {
+      transformerRef.current.nodes([]);
+      transformerRef.current.getLayer().batchDraw();
+    }
+  }, [editMode]);
 
   useEffect(() => {
     const handleMouseMoveWindow = (e: MouseEvent) => {
@@ -178,98 +353,213 @@ const Canvas = ({ savePainting }: { savePainting: (data: string) => void }) => {
         )}
       </div>
       <Box my="xl">
-        <canvas
-          ref={canvasRef}
-          width={400}
-          height={400}
+        <div
           style={{
-            border:
-              "5px solid light-dark(var(--mantine-color-white), var(--mantine-color-dark-7))",
-            borderRadius: "50%",
+            position: "relative",
+            display: "inline-block",
+            width: 400,
+            height: 400,
           }}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-        ></canvas>
+        >
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              pointerEvents: editMode ? "auto" : "none",
+              borderRadius: "50%",
+              overflow: "hidden",
+              width: 409,
+              height: 409,
+            }}
+          >
+            <Stage
+              ref={stageRef}
+              width={400}
+              height={400}
+              style={{
+                position: "absolute",
+                top: 5,
+                left: 5,
+              }}
+            >
+              <ReactLayer>
+                {imageLayers.map((layer) => (
+                  <React.Fragment key={layer.id}>
+                    <ReactImage
+                      ref={imageRef}
+                      image={layer.image}
+                      x={layer.x}
+                      y={layer.y}
+                      width={layer.width}
+                      height={layer.height}
+                      draggable={editMode}
+                      onClick={(e) => {
+                        if (transformerRef.current && editMode) {
+                          transformerRef.current.nodes([e.target]);
+                          transformerRef.current.getLayer().batchDraw();
+                        }
+                      }}
+                    />
+                  </React.Fragment>
+                ))}
+                <Transformer ref={transformerRef} visible={editMode} />
+              </ReactLayer>
+            </Stage>
+          </div>
+          <canvas
+            ref={canvasRef}
+            width={400}
+            height={400}
+            style={{
+              border:
+                "5px solid light-dark(var(--mantine-color-white), var(--mantine-color-dark-7))",
+              borderRadius: "50%",
+              display: "block",
+              position: "absolute",
+              top: 0,
+              left: 0,
+              pointerEvents: editMode ? "none" : "auto",
+            }}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+          ></canvas>
+        </div>
       </Box>
       <Stack justify="center" gap="lg">
-        <Group w="100%" justify="space-between">
-          <Group justify="center">
-            <ActionIcon me="md" size={42} color="red" onClick={open}>
-              <IconTrash size={18} />
-            </ActionIcon>
-            <Modal
-              opened={opened}
-              onClose={close}
-              size="xs"
-              title={
-                <Title
-                  tt="uppercase"
-                  style={{
-                    color:
-                      "light-dark(var(--mantine-color-red-9), var(--mantine-color-red-5))",
-                    fontSize: "32px",
-                    fontWeight: 900,
-                    letterSpacing: "2px",
-                  }}
-                >
-                  Wyczyścić płótno?
-                </Title>
-              }
-              centered
-            >
-              <Stack gap="xl" mb="md">
-                <Text>Jesteś pewien, że chcesz wyczyścić całą bombkę?</Text>
-              </Stack>
-              <Group mt="xl" w="100%" justify="space-between">
-                <Button variant="outline" onClick={close}>
-                  Anuluj
-                </Button>
-                <Button
-                  variant="filled"
-                  color="red"
-                  onClick={() => {
-                    clearCanvas();
-                    close();
-                  }}
-                >
-                  Wyczyść
-                </Button>
-              </Group>
-            </Modal>
+        <Stack>
+          <Group w="100%" justify="space-between">
+            <Group justify="center">
+              <ActionIcon me="md" size={42} color="red" onClick={open}>
+                <IconTrash size={18} />
+              </ActionIcon>
+              <Modal
+                opened={opened}
+                onClose={close}
+                size="xs"
+                title={
+                  <Title
+                    tt="uppercase"
+                    style={{
+                      color:
+                        "light-dark(var(--mantine-color-red-9), var(--mantine-color-red-5))",
+                      fontSize: "32px",
+                      fontWeight: 900,
+                      letterSpacing: "2px",
+                    }}
+                  >
+                    Wyczyścić płótno?
+                  </Title>
+                }
+                centered
+              >
+                <Stack gap="xl" mb="md">
+                  <Text>Jesteś pewien, że chcesz wyczyścić całą bombkę?</Text>
+                </Stack>
+                <Group mt="xl" w="100%" justify="space-between">
+                  <Button variant="outline" onClick={close}>
+                    Anuluj
+                  </Button>
+                  <Button
+                    variant="filled"
+                    color="red"
+                    onClick={() => {
+                      clearCanvas();
+                      clearFile();
+                      close();
+                    }}
+                  >
+                    Wyczyść
+                  </Button>
+                </Group>
+              </Modal>
+              <Button
+                onClick={() => setTool("brush")}
+                variant={tool === "brush" ? "light" : "outline"}
+                leftSection={<IconBrush size={18} />}
+                size="md"
+              >
+                Pędzel
+              </Button>
+              <Button
+                onClick={() => setTool("eraser")}
+                variant={tool === "eraser" ? "light" : "outline"}
+                leftSection={<IconEraser size={18} />}
+                size="md"
+              >
+                Gumka
+              </Button>
+              <Button
+                onClick={() => setTool("colorPicker")}
+                variant={tool === "colorPicker" ? "light" : "outline"}
+                leftSection={<IconColorPicker size={18} />}
+                size="md"
+              >
+                Pobierz kolor
+              </Button>
+            </Group>
             <Button
-              onClick={() => setTool("brush")}
-              variant={tool === "brush" ? "light" : "outline"}
-              leftSection={<IconBrush size={18} />}
+              onClick={saveCanvasPainting}
+              variant="filled"
+              rightSection={<IconChevronRight size={18} />}
               size="md"
             >
-              Pędzel
-            </Button>
-            <Button
-              onClick={() => setTool("eraser")}
-              variant={tool === "eraser" ? "light" : "outline"}
-              leftSection={<IconEraser size={18} />}
-              size="md"
-            >
-              Gumka
-            </Button>
-            <Button
-              onClick={() => setTool("colorPicker")}
-              variant={tool === "colorPicker" ? "light" : "outline"}
-              leftSection={<IconColorPicker size={18} />}
-              size="md"
-            >
-              Pobierz kolor
+              Zapisz
             </Button>
           </Group>
-          <Button
-            onClick={saveCanvasPainting}
-            variant="filled"
-            rightSection={<IconChevronRight size={18} />}
-            size="md"
-          >
-            Zapisz
-          </Button>
-        </Group>
+          <Group gap="xs">
+            <FileButton
+              resetRef={resetRef}
+              onChange={(file) => {
+                setFile(file);
+                if (file) handleFileInput(file);
+              }}
+              accept="image/png,image/jpeg"
+            >
+              {(props) => (
+                <Button
+                  variant={file !== null ? "filled" : "outline"}
+                  size="md"
+                  leftSection={<IconPolaroid size={18} />}
+                  {...props}
+                >
+                  {file ? file.name : "Wstaw obraz"}
+                </Button>
+              )}
+            </FileButton>
+            {file && (
+              <>
+                {!editMode ? (
+                  <Button
+                    onClick={selectImage}
+                    variant="outline"
+                    size="md"
+                    leftSection={<IconImageInPicture size={18} />}
+                  >
+                    Edytuj
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => setEditMode(false)}
+                    variant="light"
+                    size="md"
+                    leftSection={<IconCheck size={18} />}
+                  >
+                    Gotowe
+                  </Button>
+                )}
+                <ActionIcon
+                  size={42}
+                  disabled={!file}
+                  color="red"
+                  onClick={clearFile}
+                >
+                  <IconX size={18} />
+                </ActionIcon>
+              </>
+            )}
+          </Group>
+        </Stack>
         <Card
           shadow="md"
           withBorder

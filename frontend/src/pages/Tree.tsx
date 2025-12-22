@@ -1,35 +1,67 @@
-import { Badge, Box, Center, Image, Stack, Text, Title } from "@mantine/core";
+import {
+  Badge,
+  Box,
+  Button,
+  Center,
+  Image,
+  Modal,
+  Stack,
+  Text,
+  Title,
+} from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
+import { IconZoomIn } from "@tabler/icons-react";
 import axios from "axios";
-import React, { useEffect, useRef, useState } from "react";
-import { o } from "react-router/dist/development/index-react-server-client-CCjKYJTH";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import snowVideo from "../assets/snow.mov";
 
 interface Ornament {
-  id: string;
+  id: number;
   username: string;
-  imageData: string;
+  ornamentData: string;
   position: {
     top: string;
     left: string;
   };
+  color?: string;
 }
 
 export default function Tree() {
+  const [opened, { open, close }] = useDisclosure(false);
   const treeRef = useRef<HTMLDivElement>(null);
   const [ornaments, setOrnaments] = useState<Ornament[]>([]);
+  const circleRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    // Fetch ornament data from the backend
-    axios
-      .get("http://localhost:3000/api/tree") // Updated to match backend endpoint
-      .then((response) => {
-        // Directly set the ornaments array
-        setOrnaments(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching ornaments:", error);
-        alert("Failed to load ornaments. Please try again later."); // User-friendly error message
-      });
+  // Function to get color based on ID
+  const getOrnamentColor = (id: number): string => {
+    const colors = ["red", "green", "blue", "yellow"];
+    return colors[id % 4];
+  };
+
+  // Function to get dark border color based on ID
+  const getOrnamentBorderColor = (id: number): string => {
+    const darkColors = ["#e03131", "#2f9e44", "#1971c2", "#f59f00"];
+    return darkColors[id % 4];
+  };
+
+  useMemo(() => {
+    const fetchOrnamentData = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:3000/api/get-ornaments"
+        );
+        console.log(response.data);
+        if (Array.isArray(response.data)) {
+          setOrnaments(response.data);
+        } else {
+          console.error("Unexpected response format:", response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching ornament data:", error);
+      }
+    };
+
+    fetchOrnamentData();
   }, []);
 
   return (
@@ -83,6 +115,14 @@ export default function Tree() {
         >
           Gorasuloinka
         </Title>
+        <Button
+          onClick={open}
+          color="#4278ad"
+          variant="light"
+          leftSection={<IconZoomIn size={18} />}
+        >
+          Powiększ
+        </Button>
         <div
           ref={treeRef}
           style={{
@@ -100,39 +140,107 @@ export default function Tree() {
               maxWidth: "90vw",
             }}
           />
-          {ornaments.map((ornament) => {
-            if (
-              !ornament.position ||
-              !ornament.position.top ||
-              !ornament.position.left
-            ) {
-              console.warn("Invalid ornament position:", ornament);
-              return null; // Skip rendering invalid ornaments
-            }
-
+          {ornaments.map((ornament, index) => {
             return (
-              <Stack
-                key={ornament.id}
-                style={{
-                  position: "absolute",
-                  top: ornament.position.top,
-                  left: ornament.position.left,
-                }}
-              >
-                <Badge size="xs" color="red">
-                  {ornament.username}
-                </Badge>
-                <Image
-                  src={ornament.imageData}
-                  alt={`Bombka: ${ornament.username}`}
-                  radius="md"
-                  style={{ width: "50px", height: "50px" }}
-                />
-              </Stack>
+              ornament.ornamentData && (
+                <Stack
+                  key={index}
+                  justify="center"
+                  align="center"
+                  pos="absolute"
+                  top={`${ornament.position?.top}%`}
+                  left={`${ornament.position?.left}%`}
+                  gap={5}
+                >
+                  <Badge size="xs" color={getOrnamentColor(ornament.id)}>
+                    {ornament.username}
+                  </Badge>
+                  <img
+                    src={ornament.ornamentData}
+                    alt={`Bombka ${ornament.username}`}
+                    style={{
+                      borderRadius: "50%",
+                      width: "40px",
+                      height: "40px",
+                      objectFit: "cover",
+                      border: `3px solid ${getOrnamentBorderColor(ornament.id)}`,
+                      backgroundColor:
+                        "light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-7))",
+                    }}
+                  />
+                </Stack>
+              )
             );
           })}
         </div>
       </Box>
+      <Modal
+        opened={opened}
+        onClose={close}
+        withCloseButton={false}
+        size="xl"
+        styles={{
+          content: {
+            backgroundColor: "transparent",
+            border: "none",
+          },
+          body: {
+            backgroundColor: "transparent",
+            scrollbarWidth: "thin",
+          },
+        }}
+      >
+        <div
+          style={{
+            display: "inline-block",
+            width: "100%",
+            height: "auto",
+            position: "relative",
+          }}
+        >
+          <Image
+            src="src/assets/treebase.png"
+            alt="Gorasul Logo"
+            radius="md"
+            style={{
+              width: "100%",
+              height: "auto",
+            }}
+          />
+          {ornaments.map((ornament, index) => {
+            return (
+              ornament.ornamentData && (
+                <Stack
+                  key={index}
+                  justify="center"
+                  align="center"
+                  pos="absolute"
+                  top={`${ornament.position?.top}%`}
+                  left={`${ornament.position?.left}%`}
+                  gap={5}
+                >
+                  <Badge size="xs" color={getOrnamentColor(ornament.id)}>
+                    {ornament.username}
+                  </Badge>
+                  <img
+                    src={ornament.ornamentData}
+                    alt={`Bombka ${ornament.username}`}
+                    style={{
+                      borderRadius: "50%",
+                      width: "70px",
+                      height: "70px",
+                      objectFit: "cover",
+                      border: `3px solid ${getOrnamentBorderColor(ornament.id)}`,
+                      backgroundColor:
+                        "light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-7))",
+                    }}
+                  />
+                </Stack>
+              )
+            );
+          })}
+        </div>
+      </Modal>
     </Box>
   );
 }

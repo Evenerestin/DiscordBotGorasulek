@@ -1,13 +1,14 @@
 import { Button, Group, Modal, Stack, Text, Title } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Canvas from "../components/Canvas";
 
 export default function Ornament() {
   const [opened, { open, close }] = useDisclosure(false);
   const { username, id } = useParams();
-  const [canvasData, setCanvasData] = useState<string | null>(null);
+  const [ornamentId, setOrnamentId] = useState<string | null>(null);
+  // const [canvasData, setCanvasData] = useState<string | null>(null);
   const [modalContent, setModalContent] = useState<{
     title: string;
     text: string;
@@ -15,9 +16,10 @@ export default function Ornament() {
     title: "Wyczyścić płótno?",
     text: "Jesteś pewien, że chcesz wyczyścić całą bombkę?",
   });
+  [];
 
-  const saveOrnament = async () => {
-    if (!canvasData) {
+  const saveOrnament = async (data: string | null) => {
+    if (!data) {
       setModalContent({
         title: "Nie udało się zapisać",
         text: "Brak danych o bombce do zapisania.",
@@ -26,7 +28,7 @@ export default function Ornament() {
       return;
     }
 
-    console.log("Sending ornament data:", canvasData); // Debugging log
+    console.log("Sending ornament data:", data); // Debugging log
 
     const response = await fetch("http://localhost:3000/api/save-ornament", {
       method: "POST",
@@ -36,14 +38,16 @@ export default function Ornament() {
       body: JSON.stringify({
         username,
         sessionId: id,
-        ornamentData: canvasData,
+        ornamentData: data,
       }),
     });
 
     if (response.ok) {
+      const result = await response.json();
+      setOrnamentId(result.ornamentId || result.id);
       setModalContent({
         title: "Zapisano pomyślnie",
-        text: "Bombka została zapisana pomyślnie. Możesz ją znaleźć na Gorasuloince!",
+        text: "Bombka została zapisana pomyślnie. Teraz możesz ją umieścić na choince!",
       });
       open();
       return;
@@ -86,44 +90,7 @@ export default function Ornament() {
       </Stack>
       <Canvas
         savePainting={(data) => {
-          console.log("Data received from Canvas:", data); // Debugging log
-          setCanvasData(data);
-          const ornamentId = `ornament-${Math.floor(Math.random() * 22)}`; // Generate a valid ID based on ornamentPositions indices
-          console.log("Payload sent to backend:", {
-            username,
-            sessionId: id,
-            ornamentData: data,
-            id: ornamentId,
-          }); // Debugging log
-          fetch("http://localhost:3000/api/save-ornament", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              username,
-              sessionId: id,
-              ornamentData: data,
-              id: ornamentId, // Include the ID in the payload
-            }),
-          })
-            .then((response) => {
-              if (response.ok) {
-                setModalContent({
-                  title: "Zapisano pomyślnie",
-                  text: "Bombka została zapisana pomyślnie. Możesz ją znaleźć na Gorasuloince!",
-                });
-                open(); // Only open modal on success
-              } else {
-                setModalContent({
-                  title: "Nie udało się zapisać",
-                  text: "Niestety nie udało się zapisać bombki, proszę spróbować ponownie później.",
-                });
-              }
-            })
-            .catch((error) => {
-              console.error("Error saving ornament:", error);
-            });
+          saveOrnament(data); // Pass the data directly to saveOrnament
           open();
         }}
       />
@@ -157,15 +124,8 @@ export default function Ornament() {
               Strona główna
             </Button>
           </Link>
-          <Link to="/gorasuloinka">
-            <Button
-              variant="filled"
-              color="red"
-              onClick={() => {
-                setCanvasData(null); // Clear canvas data
-                close();
-              }}
-            >
+          <Link to={`/gorasuloinka`}>
+            <Button variant="filled" color="red" onClick={close}>
               Gorasuloinka
             </Button>
           </Link>
