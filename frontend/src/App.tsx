@@ -3,6 +3,7 @@ import React from "react";
 import { BrowserRouter, Route, Routes } from "react-router";
 import AppLayout from "./layout/AppLayout";
 import Home from "./pages/Home";
+import NotFound from "./pages/NotFound";
 import Ornament from "./pages/Ornament";
 import Tree from "./pages/Tree";
 
@@ -14,6 +15,7 @@ function App() {
           <Route index element={<Home />} />
           <Route path="/gorasuloinka" element={<Tree />} />
           <Route path="/bombka/:username/:id" element={<Ornament />} />
+          <Route path="/*" element={<NotFound />} />
         </Route>
       </Routes>
     </BrowserRouter>
