@@ -30,7 +30,7 @@ export default function Ornament() {
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/api/save-ornament",
+        "/api/save-ornament",
         {
           username,
           sessionId: id,

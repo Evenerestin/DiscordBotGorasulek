@@ -3,10 +3,17 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "node backend/src/index.ts",
-    "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "server": "nodemon backend/src/index.ts",
-    "client": "vite --config frontend/vite.config.ts"
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:backend": "NODE_ENV=production node backend/dist/index.js",
+    "start:frontend": "cd frontend && vite preview --port 5173 --host",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "tsc -p backend/tsconfig.json",
+    "build:frontend": "vite build --config frontend/vite.config.ts",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "nodemon --exec ts-node backend/src/index.ts",
+    "dev:frontend": "vite --config frontend/vite.config.ts",
+    "prod": "npm run build && npm start",
+    "preview": "npm run build && npm start"
   },
   "keywords": [],
   "author": "",

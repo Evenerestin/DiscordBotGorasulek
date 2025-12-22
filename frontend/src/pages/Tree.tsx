@@ -34,9 +34,7 @@ export default function Tree() {
   useMemo(() => {
     const fetchOrnamentData = async () => {
       try {
-        const response = await axios.get(
-          "http://localhost:3000/api/get-ornaments"
-        );
+        const response = await axios.get("/api/get-ornaments");
         console.log(response.data);
         if (Array.isArray(response.data)) {
           setOrnaments(response.data);
