@@ -45,7 +45,7 @@ export default function BrushOptions({
           { value: 45 },
           { value: 55 },
         ]}
-        label={sizeLabels[(brushSize - 5) / 10]} // Map brushSize to sizeLabels
+        label={sizeLabels[(brushSize - 5) / 10]}
       />
     </Stack>
   );

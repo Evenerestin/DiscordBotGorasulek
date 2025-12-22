@@ -1,4 +1,4 @@
-import { Card, ColorPicker, Group, Stack, Text } from "@mantine/core";
+import { ColorPicker, Stack } from "@mantine/core";
 import React, { useState } from "react";
 
 interface ColorPaletteProps {

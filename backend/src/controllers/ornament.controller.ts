@@ -6,18 +6,17 @@ import {
   saveOrnamentData,
 } from "../services/ornament.service";
 
-const ornamentsPath = path.join(__dirname, "../data/ornaments.json");
+const dataDir = path.join(__dirname, "../../../data");
+const ornamentsPath = path.join(dataDir, "ornaments.json");
 
 export const saveOrnament = (req: Request, res: Response): void => {
   const { username, sessionId, ornamentData } = req.body;
 
   // Validate required fields
   if (!username || !sessionId || !ornamentData) {
-    res
-      .status(400)
-      .json({
-        error: "Missing required fields: username, sessionId, or ornamentData",
-      });
+    res.status(400).json({
+      error: "Missing required fields: username, sessionId, or ornamentData",
+    });
     return;
   }
 

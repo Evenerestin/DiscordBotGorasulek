@@ -1,11 +1,4 @@
-import {
-  Box,
-  Center,
-  Image,
-  Stack,
-  Tooltip,
-  UnstyledButton,
-} from "@mantine/core";
+import { Center, Image, Stack, Tooltip } from "@mantine/core";
 import { IconChristmasTree, IconHome } from "@tabler/icons-react";
 import React from "react";
 import { Link, useLocation } from "react-router";
@@ -19,13 +12,7 @@ interface NavbarLinkProps {
   onClick?: () => void;
 }
 
-function NavbarLink({
-  icon: Icon,
-  label,
-  path,
-  active,
-  onClick,
-}: NavbarLinkProps) {
+function NavbarLink({ icon: Icon, label, path, active }: NavbarLinkProps) {
   return (
     <Tooltip label={label} position="right" transitionProps={{ duration: 0 }}>
       <Link
@@ -36,15 +23,6 @@ function NavbarLink({
         <Icon size={20} stroke={1.5} />
       </Link>
     </Tooltip>
-    // <Tooltip label={label} position="right" transitionProps={{ duration: 0 }}>
-    //   <UnstyledButton
-    //     onClick={onClick}
-    //     className={classes.link}
-    //     data-active={active || undefined}
-    //   >
-    //     <Icon size={20} stroke={1.5} />
-    //   </UnstyledButton>
-    // </Tooltip>
   );
 }
 
@@ -60,14 +38,14 @@ export function Navbar() {
     <NavbarLink
       {...link}
       key={link.label}
-      active={location.pathname === link.path} // Check if the current path matches the link path
+      active={location.pathname === link.path}
     />
   ));
 
   return (
     <nav className={classes.navbar} style={{ minHeight: "100vh" }}>
       <Center>
-        <Image src="src/assets/gorasul-light.png" alt="Logo" radius="md" />
+        <Image src="public/gorasul-light.png" alt="Logo" radius="md" />
       </Center>
 
       <div className={classes.navbarMain}>
@@ -75,11 +53,6 @@ export function Navbar() {
           {links}
         </Stack>
       </div>
-
-      {/* <Stack justify="center" gap={0}>
-        <NavbarLink icon={IconSwitchHorizontal} label="Change account" />
-        <NavbarLink icon={IconLogout} label="Logout" />
-      </Stack> */}
     </nav>
   );
 }

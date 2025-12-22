@@ -1,19 +1,9 @@
-import {
-  Badge,
-  Box,
-  Button,
-  Center,
-  Image,
-  Modal,
-  Stack,
-  Text,
-  Title,
-} from "@mantine/core";
+import { Badge, Box, Button, Image, Modal, Stack, Title } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { IconZoomIn } from "@tabler/icons-react";
 import axios from "axios";
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import snowVideo from "../assets/snow.mov";
+import React, { useMemo, useRef, useState } from "react";
+import snowVideo from "../../public/snow.mov";
 
 interface Ornament {
   id: number;
@@ -30,15 +20,12 @@ export default function Tree() {
   const [opened, { open, close }] = useDisclosure(false);
   const treeRef = useRef<HTMLDivElement>(null);
   const [ornaments, setOrnaments] = useState<Ornament[]>([]);
-  const circleRef = useRef<HTMLDivElement>(null);
 
-  // Function to get color based on ID
   const getOrnamentColor = (id: number): string => {
     const colors = ["red", "green", "blue", "yellow"];
     return colors[id % 4];
   };
 
-  // Function to get dark border color based on ID
   const getOrnamentBorderColor = (id: number): string => {
     const darkColors = ["#e03131", "#2f9e44", "#1971c2", "#f59f00"];
     return darkColors[id % 4];
@@ -131,7 +118,7 @@ export default function Tree() {
           }}
         >
           <Image
-            src="src/assets/treebase.png"
+            src="public/treebase.png"
             alt="Gorasul Logo"
             radius="md"
             style={{
@@ -163,7 +150,9 @@ export default function Tree() {
                       width: "40px",
                       height: "40px",
                       objectFit: "cover",
-                      border: `3px solid ${getOrnamentBorderColor(ornament.id)}`,
+                      border: `3px solid ${getOrnamentBorderColor(
+                        ornament.id
+                      )}`,
                       backgroundColor:
                         "light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-7))",
                     }}
@@ -199,7 +188,7 @@ export default function Tree() {
           }}
         >
           <Image
-            src="src/assets/treebase.png"
+            src="public/treebase.png"
             alt="Gorasul Logo"
             radius="md"
             style={{
@@ -230,7 +219,9 @@ export default function Tree() {
                       width: "70px",
                       height: "70px",
                       objectFit: "cover",
-                      border: `3px solid ${getOrnamentBorderColor(ornament.id)}`,
+                      border: `3px solid ${getOrnamentBorderColor(
+                        ornament.id
+                      )}`,
                       backgroundColor:
                         "light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-7))",
                     }}

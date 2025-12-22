@@ -1,8 +1,7 @@
 import fs from "fs-extra";
 import path from "path";
-import { ornamentPositions } from "../config/ornamentSpots"; // Removed incorrect OrnamentPositions import
 
-const dataDir = path.join(__dirname, "../data");
+const dataDir = path.join(__dirname, "../../../data");
 const ornamentsPath = path.join(dataDir, "ornaments.json");
 const sessionsPath = path.join(dataDir, "sessions.json");
 const positionsPath = path.join(dataDir, "positions.json");

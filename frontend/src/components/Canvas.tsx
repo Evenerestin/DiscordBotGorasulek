@@ -18,14 +18,12 @@ import {
   IconChevronRight,
   IconColorPicker,
   IconEraser,
-  IconFile,
   IconImageInPicture,
   IconPolaroid,
   IconTrash,
   IconX,
 } from "@tabler/icons-react";
 import Konva from "konva";
-import { Layer } from "konva/lib/Layer";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Image as ReactImage,
@@ -65,9 +63,9 @@ const Canvas = ({ savePainting }: { savePainting: (data: string) => void }) => {
     setImageLayers([]);
     setEditMode(false);
     if (resetRef.current) {
-      resetRef.current(); // Explicitly reset the FileButton
+      resetRef.current();
     }
-    clearCanvas(); // Clear the canvas when the file is cleared
+    clearCanvas();
   };
 
   const computedColorScheme = useComputedColorScheme("light", {
@@ -79,10 +77,10 @@ const Canvas = ({ savePainting }: { savePainting: (data: string) => void }) => {
 
   const pickColor = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
-    if (!canvas) return; // Check if canvas is null
+    if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
-    if (!ctx) return; // Check if context is null
+    if (!ctx) return;
 
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -97,15 +95,15 @@ const Canvas = ({ savePainting }: { savePainting: (data: string) => void }) => {
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
-    if (!canvas) return; // Check if canvas is null
+    if (!canvas) return;
 
     if (tool === "colorPicker") {
-      pickColor(e); // Call the pickColor function for the color picker tool
-      return; // Prevent drawing
+      pickColor(e);
+      return;
     }
 
     const ctx = canvas.getContext("2d");
-    if (!ctx) return; // Check if context is null
+    if (!ctx) return;
 
     ctx.strokeStyle = tool === "eraser" ? backgroundColor : color;
     ctx.lineWidth = brushSize;
@@ -130,10 +128,10 @@ const Canvas = ({ savePainting }: { savePainting: (data: string) => void }) => {
 
   const clearCanvas = () => {
     const canvas = canvasRef.current;
-    if (!canvas) return; // Check if canvas is null
+    if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
-    if (!ctx) return; // Check if context is null
+    if (!ctx) return;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = backgroundColor;
@@ -142,41 +140,48 @@ const Canvas = ({ savePainting }: { savePainting: (data: string) => void }) => {
 
   const saveCanvasPainting = () => {
     const canvas = canvasRef.current;
-    if (!canvas) return; // Check if canvas is null
+    if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
-    if (!ctx) return; // Check if context is null
+    if (!ctx) return;
 
-    // Get the current canvas data
-    const currentImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    
-    // Create a fresh canvas with just the background to compare
+    const currentImageData = ctx.getImageData(
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
     const blankCanvas = document.createElement("canvas");
     blankCanvas.width = canvas.width;
     blankCanvas.height = canvas.height;
     const blankCtx = blankCanvas.getContext("2d");
     if (!blankCtx) return;
-    
+
     blankCtx.fillStyle = backgroundColor;
     blankCtx.fillRect(0, 0, canvas.width, canvas.height);
-    const blankImageData = blankCtx.getImageData(0, 0, canvas.width, canvas.height);
+    const blankImageData = blankCtx.getImageData(
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
 
-    // Compare: if current data is different from blank, user has drawn something
-    const hasDrawing = !currentImageData.data.every((val, i) => val === blankImageData.data[i]);
-    
+    const hasDrawing = !currentImageData.data.every(
+      (val, i) => val === blankImageData.data[i]
+    );
+
     if (!hasDrawing && imageLayers.length === 0) {
       console.error("Canvas is empty. Nothing to save.");
       return;
     }
 
-    // Create a temporary canvas for combining all layers
     const finalCanvas = document.createElement("canvas");
     finalCanvas.width = canvas.width;
     finalCanvas.height = canvas.height;
     const finalCtx = finalCanvas.getContext("2d");
     if (!finalCtx) return;
 
-    // First, draw the Konva stage (image layer) if it exists
     if (imageLayers.length > 0 && stageRef.current) {
       const stageDataURL = stageRef.current.toDataURL({
         mimeType: "image/png",
@@ -184,19 +189,17 @@ const Canvas = ({ savePainting }: { savePainting: (data: string) => void }) => {
       const stageImage = new Image();
       stageImage.onload = () => {
         finalCtx.drawImage(stageImage, 0, 0);
-        // Then draw the canvas (drawing layer) on top
+
         finalCtx.drawImage(canvas, 0, 0);
         exportFinalImage(finalCanvas);
       };
       stageImage.src = stageDataURL;
     } else {
-      // If no image layer, just use the canvas
       exportFinalImage(canvas);
     }
   };
 
   const exportFinalImage = (canvasToExport: HTMLCanvasElement) => {
-    // Use Konva for better image export
     const stage = new Konva.Stage({
       container: document.createElement("div"),
       width: canvasToExport.width,
@@ -206,7 +209,6 @@ const Canvas = ({ savePainting }: { savePainting: (data: string) => void }) => {
     const layer = new Konva.Layer();
     stage.add(layer);
 
-    // Create Konva image from the canvas
     const image = new Konva.Image({
       image: canvasToExport,
       x: 0,
@@ -217,31 +219,29 @@ const Canvas = ({ savePainting }: { savePainting: (data: string) => void }) => {
     layer.add(image);
     layer.draw();
 
-    // Export with Konva (better quality and options)
     const dataURL = stage.toDataURL({
       mimeType: "image/png",
       quality: 1,
-      pixelRatio: 2, // Higher resolution export
+      pixelRatio: 2,
     });
 
-    // Clean up
     stage.destroy();
 
-    savePainting(dataURL); // Call the savePainting function
+    savePainting(dataURL);
   };
 
   const cursorStyle = {
-    width: tool === "brush" ? `${brushSize}px` : "24px", // Adjust size for brush or other tools
+    width: tool === "brush" ? `${brushSize}px` : "24px",
     height: tool === "brush" ? `${brushSize}px` : "24px",
-    borderRadius: tool === "brush" ? "50%" : "0", // Circle for brush, none for other tools
-    border: tool === "brush" ? "2px solid white" : "none", // Border for brush only
-    backgroundColor: tool === "brush" ? color : "transparent", // Color for brush only
-    display: "flex", // Center the icons
+    borderRadius: tool === "brush" ? "50%" : "0",
+    border: tool === "brush" ? "2px solid white" : "none",
+    backgroundColor: tool === "brush" ? color : "transparent",
+    display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    position: "absolute" as const, // Explicitly cast to 'absolute'
-    pointerEvents: "none" as const, // Correctly type pointerEvents
-    transform: "translate(-50%, -50%)", // Center the cursor
+    position: "absolute" as const,
+    pointerEvents: "none" as const,
+    transform: "translate(-50%, -50%)",
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -249,10 +249,10 @@ const Canvas = ({ savePainting }: { savePainting: (data: string) => void }) => {
     if (!canvas) return;
 
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left + window.scrollX; // Adjust for horizontal scroll
-    const y = e.clientY - rect.top + window.scrollY; // Adjust for vertical scroll
+    const x = e.clientX - rect.left + window.scrollX;
+    const y = e.clientY - rect.top + window.scrollY;
 
-    setCursorPosition({ x, y }); // Update cursor position relative to the canvas
+    setCursorPosition({ x, y });
   };
 
   const handleFileInput = (file: File) => {
@@ -262,7 +262,6 @@ const Canvas = ({ savePainting }: { savePainting: (data: string) => void }) => {
       img.src = event.target?.result as string;
       img.crossOrigin = "anonymous";
       img.onload = () => {
-        // Calculate dimensions to fit within canvas while maintaining aspect ratio
         const maxWidth = 250;
         const maxHeight = 250;
         let width = img.width;
@@ -280,11 +279,9 @@ const Canvas = ({ savePainting }: { savePainting: (data: string) => void }) => {
           }
         }
 
-        // Position image at the center of the canvas
         const x = (400 - width) / 2;
         const y = (400 - height) / 2;
 
-        // Only allow one image - replace the existing one
         setImageLayers([
           {
             id: `layer-${Date.now()}`,

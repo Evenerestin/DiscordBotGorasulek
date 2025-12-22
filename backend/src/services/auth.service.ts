@@ -5,7 +5,8 @@ import path from "path";
 import { URL } from "url";
 import { v4 as uuidv4 } from "uuid"; // Import UUID for sessionId generation
 
-const dataDir = path.join(__dirname, "../data");
+const dataDir = path.join(__dirname, "../../../data");
+const sessionsPath = path.join(dataDir, "sessions.json");
 const app = express();
 
 // Middleware to parse JSON request bodies
@@ -14,7 +15,7 @@ app.use(express.json());
 // Authenticate session endpoint
 app.post("/api/authenticate-session", (req, res) => {
   const { username, sessionId } = req.body;
-  const sessionsPath = path.join(dataDir, "sessions.json");
+  console.log("EOEOEOEOEOOE", sessionsPath);
 
   fs.readJson(sessionsPath)
     .then((sessions) => {

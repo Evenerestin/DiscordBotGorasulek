@@ -1,5 +1,6 @@
 import { Button, Group, Modal, Stack, Text, Title } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import axios from "axios";
 import React, { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Canvas from "../components/Canvas";
@@ -8,7 +9,6 @@ export default function Ornament() {
   const [opened, { open, close }] = useDisclosure(false);
   const { username, id } = useParams();
   const [ornamentId, setOrnamentId] = useState<string | null>(null);
-  // const [canvasData, setCanvasData] = useState<string | null>(null);
   const [modalContent, setModalContent] = useState<{
     title: string;
     text: string;
@@ -28,30 +28,27 @@ export default function Ornament() {
       return;
     }
 
-    console.log("Sending ornament data:", data); // Debugging log
+    try {
+      const response = await axios.post(
+        "http://localhost:3000/api/save-ornament",
+        {
+          username,
+          sessionId: id,
+          ornamentData: data,
+        }
+      );
 
-    const response = await fetch("http://localhost:3000/api/save-ornament", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        username,
-        sessionId: id,
-        ornamentData: data,
-      }),
-    });
-
-    if (response.ok) {
-      const result = await response.json();
-      setOrnamentId(result.ornamentId || result.id);
-      setModalContent({
-        title: "Zapisano pomyślnie",
-        text: "Bombka została zapisana pomyślnie. Teraz możesz ją umieścić na choince!",
-      });
-      open();
-      return;
-    } else {
+      if (response.status === 200) {
+        const result = response.data;
+        setOrnamentId(result.ornamentId || result.id);
+        setModalContent({
+          title: "Zapisano pomyślnie",
+          text: "Bombka została zapisana pomyślnie. Teraz możesz ją umieścić na choince!",
+        });
+        open();
+        return;
+      }
+    } catch (error) {
       setModalContent({
         title: "Nie udało się zapisać",
         text: "Niestety nie udało się zapisać bombki, proszę spróbować ponownie później.",
@@ -76,7 +73,6 @@ export default function Ornament() {
           Ozdób swoją bombkę!
         </Title>
         <Title
-          //   tt="uppercase"
           style={{
             color: "#4278ad",
             fontSize: "32px",
@@ -90,7 +86,7 @@ export default function Ornament() {
       </Stack>
       <Canvas
         savePainting={(data) => {
-          saveOrnament(data); // Pass the data directly to saveOrnament
+          saveOrnament(data);
           open();
         }}
       />
