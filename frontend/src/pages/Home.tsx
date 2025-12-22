@@ -35,7 +35,7 @@ export default function Home() {
           Gorasul
         </Title>
         <Image
-          src={`public/gorasul-${computedColorScheme}.png`}
+          src={`gorasul-${computedColorScheme}.png`}
           alt="Gorasul Logo"
           radius="md"
           bg="light-dark(var(--mantine-color-red-9), var(--mantine-color-red-5))"
