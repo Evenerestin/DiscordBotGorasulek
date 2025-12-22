@@ -118,7 +118,7 @@ export default function Tree() {
           }}
         >
           <Image
-            src="public/treebase.png"
+            src="treebase.png"
             alt="Gorasul Logo"
             radius="md"
             style={{
