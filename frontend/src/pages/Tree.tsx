@@ -3,7 +3,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { IconZoomIn } from "@tabler/icons-react";
 import axios from "axios";
 import React, { useMemo, useRef, useState } from "react";
-import snowVideo from "../../public/snow.mov";
+import snowVideo from "/snow.mov";
 
 interface Ornament {
   id: number;
