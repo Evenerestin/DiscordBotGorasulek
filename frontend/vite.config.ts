@@ -7,6 +7,7 @@ export default defineConfig({
   server: {
     port: 5173,
     strictPort: false,
+    allowedHosts: ["gorasul.pl", "localhost"],
   },
   preview: {
     host: "0.0.0.0",
