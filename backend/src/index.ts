@@ -106,6 +106,6 @@ client.on("interactionCreate", async (interaction) => {
 });
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+app.listen(3000, '0.0.0.0', () => {
+  console.log('Backend listening on 0.0.0.0:3000');
 });
