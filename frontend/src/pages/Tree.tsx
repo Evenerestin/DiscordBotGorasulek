@@ -61,7 +61,7 @@ export default function Tree() {
         }}
       >
         <video
-          src="snow.mov"
+          src="/snow.mov"
           autoPlay
           loop
           muted
@@ -114,8 +114,8 @@ export default function Tree() {
           }}
         >
           <Image
-            src="treebase.png"
-            alt="Gorasul Logo"
+            src="/treebase.png"
+            alt="Gorasuloinka"
             radius="md"
             style={{
               maxHeight: "80vh",
@@ -184,8 +184,8 @@ export default function Tree() {
           }}
         >
           <Image
-            src="treebase.png"
-            alt="Gorasul Logo"
+            src="/treebase.png"
+            alt="Gorasuloinka - powiększona"
             radius="md"
             style={{
               width: "100%",

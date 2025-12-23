@@ -42,9 +42,13 @@ export const saveOrnamentData = async (
       positionsPath
     );
     if (Array.isArray(positions) && positions.length > 0) {
-      // Use modulo to cycle through positions if there are more ornaments than positions
-      const positionIndex = id % positions.length;
-      position = positions[positionIndex];
+      // Use the ornament ID directly to determine the position index
+      const positionIndex = id - 1; // IDs start from 1, so subtract 1 for zero-based index
+      if (positionIndex < positions.length) {
+        position = positions[positionIndex];
+      } else {
+        console.warn("No available position for ornament ID:", id);
+      }
     }
   } catch (err) {
     console.warn("Could not load positions file, saving without position");
