@@ -31,9 +31,6 @@ app.use(
 app.post("/api/save-ornament", saveOrnament);
 app.get("/api/get-ornaments", getOrnaments);
 
-// Get the current directory path (CommonJS version)
-const __dirname = path.resolve();
-
 // Serve static frontend files from the built directory
 const frontendDistPath = path.join(__dirname, "frontend/dist");
 
