@@ -4,7 +4,8 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   plugins: [react()],
-  root: "./frontend",
+  root: ".",
+  base: "./",
   server: {
     port: 5173,
     strictPort: false,
@@ -17,12 +18,11 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: "../frontend/dist",
+    outDir: "dist",
     emptyOutDir: true,
-    // Optional: Optimize for your React Router setup
     rollupOptions: {
       input: {
-        main: path.resolve(__dirname, "frontend/index.html"),
+        main: path.resolve(__dirname, "index.html"),
       },
     },
   },
