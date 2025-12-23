@@ -34,6 +34,7 @@ export default function Tree() {
     const fetchOrnamentData = async () => {
       try {
         const response = await axios.get("/api/get-ornaments");
+        console.log(response);
         if (Array.isArray(response.data)) {
           setOrnaments(response.data);
         } else {
