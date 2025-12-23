@@ -34,7 +34,6 @@ export default function Tree() {
     const fetchOrnamentData = async () => {
       try {
         const response = await axios.get("/api/get-ornaments");
-        console.log(response.data);
         if (Array.isArray(response.data)) {
           setOrnaments(response.data);
         } else {
@@ -185,7 +184,7 @@ export default function Tree() {
           }}
         >
           <Image
-            src="public/treebase.png"
+            src="treebase.png"
             alt="Gorasul Logo"
             radius="md"
             style={{
