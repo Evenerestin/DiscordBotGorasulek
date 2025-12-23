@@ -79,7 +79,7 @@ client.on("interactionCreate", async (interaction) => {
         : interaction.user.username; // Use server nickname if available
     const sessionId = require("uuid").v4(); // Generate a unique session ID
 
-    const sessionsPath = path.join(__dirname, "data/sessions.json");
+    const sessionsPath = path.join(__dirname, "../../data/sessions.json");
     const sessions = await fs.readJson(sessionsPath).catch(() => ({}));
 
     // Update the session ID for the user
