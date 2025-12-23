@@ -32,7 +32,7 @@ app.post("/api/save-ornament", saveOrnament);
 app.get("/api/get-ornaments", getOrnaments);
 
 // Serve static frontend files from the built directory
-const frontendDistPath = path.join(__dirname, "frontend/dist");
+const frontendDistPath = path.join(__dirname);
 
 // Check if the build exists
 if (fs.existsSync(frontendDistPath)) {
@@ -44,7 +44,7 @@ if (fs.existsSync(frontendDistPath)) {
 }
 
 // For SPA routing: send index.html for any non-API route
-app.get("/*", (req, res, next) => {
+app.get("*", (req, res, next) => {
   // Skip API routes
   if (req.path.startsWith("/api")) {
     return next();
