@@ -9,7 +9,6 @@ import dotenv from "dotenv";
 import express from "express";
 import fs from "fs-extra";
 import path from "path";
-import { fileURLToPath } from "url";
 import { getOrnaments, saveOrnament } from "./controllers/ornament.controller";
 import { registerCommands } from "./services/discord.service";
 
@@ -88,7 +87,7 @@ client.on("interactionCreate", async (interaction) => {
         ? guildMember.displayName
         : interaction.user.username; // Use server nickname if available
     const sessionId = require("uuid").v4(); // Generate a unique session ID
-    
+
     const sessionsPath = path.join(__dirname, "data/sessions.json");
     const sessions = await fs.readJson(sessionsPath).catch(() => ({}));
 
