@@ -31,31 +31,25 @@ app.use(
 app.post("/api/save-ornament", saveOrnament);
 app.get("/api/get-ornaments", getOrnaments);
 
-// Serve static frontend files from the built directory
-const frontendDistPath = path.join(__dirname);
+const frontendDistPath = path.resolve(__dirname, "../../dist");
+console.log("Resolved frontendDistPath:", frontendDistPath);
 
-// Check if the build exists
-if (fs.existsSync(frontendDistPath)) {
-  console.log(`Serving frontend from: ${frontendDistPath}`);
-  app.use(express.static(frontendDistPath));
-} else {
-  console.warn(`Warning: Frontend build not found at ${frontendDistPath}`);
-  console.warn("Run 'npm run build' to create the frontend build");
-}
+app.use(express.static(frontendDistPath));
 
-// For SPA routing: send index.html for any non-API route
+// SPA fallback (must be AFTER static + API routes)
 app.use((req, res, next) => {
   // Skip API routes
   if (req.path.startsWith("/api")) {
     return next();
   }
 
-  // Only serve index.html if the build exists
-  if (fs.existsSync(frontendDistPath)) {
-    res.sendFile(path.join(frontendDistPath, "index.html"));
-  } else {
-    res.status(404).send("Frontend not built. Run 'npm run build'.");
+  const indexHtml = path.join(frontendDistPath, "index.html");
+
+  if (fs.existsSync(indexHtml)) {
+    return res.sendFile(indexHtml);
   }
+
+  res.status(404).send("Frontend not built. Run 'npm run build'.");
 });
 
 // Discord Bot Setup
