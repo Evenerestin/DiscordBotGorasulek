@@ -25,5 +25,6 @@ export default defineConfig({
         main: path.resolve(__dirname, "index.html"),
       },
     },
+    chunkSizeWarningLimit: 1000,
   },
 });

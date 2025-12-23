@@ -31,7 +31,7 @@ app.use(
 app.post("/api/save-ornament", saveOrnament);
 app.get("/api/get-ornaments", getOrnaments);
 
-const frontendDistPath = path.resolve(__dirname, "../../dist");
+const frontendDistPath = path.resolve(__dirname, "../../dist/frontend");
 console.log("Resolved frontendDistPath:", frontendDistPath);
 
 app.use(express.static(frontendDistPath));
