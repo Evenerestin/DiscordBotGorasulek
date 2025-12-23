@@ -44,7 +44,7 @@ if (fs.existsSync(frontendDistPath)) {
 }
 
 // For SPA routing: send index.html for any non-API route
-app.get("*", (req, res, next) => {
+app.get("/*", (req, res, next) => {
   // Skip API routes
   if (req.path.startsWith("/api")) {
     return next();
