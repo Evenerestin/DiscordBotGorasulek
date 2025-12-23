@@ -88,41 +88,12 @@ client.on("interactionCreate", async (interaction) => {
     // Write the updated sessions back to the file
     await fs.writeJson(sessionsPath, sessions);
 
-    const link = `/bombka/${encodeURIComponent(serverUsername)}/${sessionId}`;
+    const link = `https://gorasul.pl/bombka/${encodeURIComponent(serverUsername)}/${sessionId}`;
 
     await interaction.reply({
       content: `🎨 Link do twojej sesji generatora: ${link}`,
       ephemeral: true, // Make the reply visible only to the user
     });
-  }
-
-  if (commandName === "tree") {
-    await interaction.deferReply();
-
-    try {
-      const imageBuffer = Buffer.from("..."); // Replace with actual image data
-
-      const attachment = new AttachmentBuilder(imageBuffer, {
-        name: "christmas-tree.png",
-      });
-
-      const embed = new EmbedBuilder()
-        .setTitle("🎄 Current Christmas Tree 🎄")
-        .setImage("attachment://christmas-tree.png")
-        .setColor(0x2ecc40)
-        .setTimestamp();
-
-      await interaction.editReply({
-        embeds: [embed],
-        files: [attachment],
-      });
-    } catch (error) {
-      console.error("Error in /tree command:", error);
-    }
-  }
-
-  if (commandName === "moja-bombka") {
-    await interaction.reply("Feature coming soon!");
   }
 });
 

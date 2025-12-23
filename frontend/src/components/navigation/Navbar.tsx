@@ -45,7 +45,9 @@ export function Navbar() {
   return (
     <nav className={classes.navbar} style={{ minHeight: "100vh" }}>
       <Center>
-        <Image src="gorasul-light.png" alt="Logo" radius="md" />
+        <Link to="/">
+          <Image src="gorasul-light.png" alt="Logo" radius="md" />
+        </Link>
       </Center>
 
       <div className={classes.navbarMain}>
