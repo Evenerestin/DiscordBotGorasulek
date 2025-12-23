@@ -4,15 +4,13 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   plugins: [react()],
+  root: ".",
   base: "/",
 
   build: {
-    outDir: path.resolve(__dirname, "../dist"),
+    outDir: "../dist",
     emptyOutDir: true,
     assetsDir: "assets",
-    rollupOptions: {
-      input: path.resolve(__dirname, "index.html"),
-    },
     chunkSizeWarningLimit: 1000,
   },
   server: {
