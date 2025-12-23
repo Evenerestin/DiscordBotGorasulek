@@ -2,6 +2,10 @@
 /package-lock.json
 /.env
 
+/dist
+/backend/dist
+/frontend/dist
+
 logs
 *.log
 npm-debug.log*

@@ -9,6 +9,7 @@ import dotenv from "dotenv";
 import express from "express";
 import fs from "fs-extra";
 import path from "path";
+import { fileURLToPath } from "url";
 import { getOrnaments, saveOrnament } from "./controllers/ornament.controller";
 import { registerCommands } from "./services/discord.service";
 
@@ -30,6 +31,36 @@ app.use(
 // Routes
 app.post("/api/save-ornament", saveOrnament);
 app.get("/api/get-ornaments", getOrnaments);
+
+// Get the current directory path (CommonJS version)
+const __dirname = path.resolve();
+
+// Serve static frontend files from the built directory
+const frontendDistPath = path.join(__dirname, "frontend/dist");
+
+// Check if the build exists
+if (fs.existsSync(frontendDistPath)) {
+  console.log(`Serving frontend from: ${frontendDistPath}`);
+  app.use(express.static(frontendDistPath));
+} else {
+  console.warn(`Warning: Frontend build not found at ${frontendDistPath}`);
+  console.warn("Run 'npm run build' to create the frontend build");
+}
+
+// For SPA routing: send index.html for any non-API route
+app.get("*", (req, res, next) => {
+  // Skip API routes
+  if (req.path.startsWith("/api")) {
+    return next();
+  }
+
+  // Only serve index.html if the build exists
+  if (fs.existsSync(frontendDistPath)) {
+    res.sendFile(path.join(frontendDistPath, "index.html"));
+  } else {
+    res.status(404).send("Frontend not built. Run 'npm run build'.");
+  }
+});
 
 // Discord Bot Setup
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
@@ -57,8 +88,8 @@ client.on("interactionCreate", async (interaction) => {
         ? guildMember.displayName
         : interaction.user.username; // Use server nickname if available
     const sessionId = require("uuid").v4(); // Generate a unique session ID
-
-    const sessionsPath = path.join(__dirname, "../../data/sessions.json");
+    
+    const sessionsPath = path.join(__dirname, "data/sessions.json");
     const sessions = await fs.readJson(sessionsPath).catch(() => ({}));
 
     // Update the session ID for the user
@@ -108,4 +139,5 @@ client.on("interactionCreate", async (interaction) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Serving frontend from: ${frontendDistPath}`);
 });
