@@ -2,6 +2,7 @@
   "name": "discordbotgorasulek",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "commonjs", 
   "scripts": {
     "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
     "start:backend": "NODE_ENV=production node backend/dist/index.js",
