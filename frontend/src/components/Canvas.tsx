@@ -75,6 +75,15 @@ const Canvas = ({
       resetRef.current();
     }
     clearCanvas();
+
+    // Reset image and transformer references
+    if (imageRef.current) {
+      imageRef.current = null;
+    }
+    if (transformerRef.current) {
+      transformerRef.current.nodes([]);
+      transformerRef.current.getLayer().batchDraw();
+    }
   };
 
   const computedColorScheme = useComputedColorScheme("light", {
