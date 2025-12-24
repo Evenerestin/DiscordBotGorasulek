@@ -10,7 +10,7 @@ export const saveOrnamentData = async (
   username: string,
   sessionId: string,
   ornamentData: string,
-  id: number // Ensure id is a number
+  id: number
 ): Promise<void> => {
   const sessions = await fs.readJson(sessionsPath);
   const session = sessions[username];
@@ -35,14 +35,12 @@ export const saveOrnamentData = async (
     ornaments = [];
   }
 
-  // Load positions and pick one based on ornament ID
   let position: any = null;
   let positions: Array<{ top: number; left: number }> = [];
   try {
     positions = await fs.readJson(positionsPath);
     if (Array.isArray(positions) && positions.length > 0) {
-      // Use the ornament ID directly to determine the position index
-      const positionIndex = id - 1; // IDs start from 1, so subtract 1 for zero-based index
+      const positionIndex = id - 1;
       if (positionIndex < positions.length) {
         position = positions[positionIndex];
       } else {
@@ -59,12 +57,10 @@ export const saveOrnamentData = async (
   let newId = 1;
 
   if (existingIndex !== -1) {
-    // If the ornament already exists, retain its ID and position
     newId = ornaments[existingIndex].id;
     position = ornaments[existingIndex].position;
     ornaments[existingIndex] = { id: newId, username, position, ornamentData };
   } else {
-    // Assign a new ID and position
     const usedIds = ornaments.map((ornament) => ornament.id);
     while (usedIds.includes(newId)) {
       newId++;

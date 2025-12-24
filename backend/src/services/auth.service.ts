@@ -2,20 +2,15 @@ import { REST, Routes } from "discord.js";
 import express from "express";
 import fs from "fs-extra";
 import path from "path";
-import { URL } from "url";
-import { v4 as uuidv4 } from "uuid"; // Import UUID for sessionId generation
 
 const dataDir = path.join(__dirname, "../../../data");
 const sessionsPath = path.join(dataDir, "sessions.json");
 const app = express();
 
-// Middleware to parse JSON request bodies
 app.use(express.json());
 
-// Authenticate session endpoint
 app.post("/api/authenticate-session", (req, res) => {
   const { username, sessionId } = req.body;
-  console.log("EOEOEOEOEOOE", sessionsPath);
 
   fs.readJson(sessionsPath)
     .then((sessions) => {
@@ -48,18 +43,6 @@ export const registerCommands = async (
         {
           name: "bombka",
           description: "Generate a link to the painting website.",
-        },
-        {
-          name: "tree",
-          description: "Display the current Christmas tree.",
-        },
-        {
-          name: "hang-ornament",
-          description: "Hang an ornament on the tree.",
-        },
-        {
-          name: "my-ornaments",
-          description: "List your saved ornaments.",
         },
       ],
     });
