@@ -31,10 +31,19 @@ import {
   Stage,
   Transformer,
 } from "react-konva";
+import { ModalType } from "../pages/Ornament";
 import BrushOptions from "./BrushOptions";
 import { default as ColorPalette } from "./ColorPalette";
 
-const Canvas = ({ savePainting }: { savePainting: (data: string) => void }) => {
+const Canvas = ({
+  savePainting,
+  activeModal,
+  setActiveModal,
+}: {
+  savePainting: (data: string) => void;
+  activeModal: ModalType;
+  setActiveModal: React.Dispatch<React.SetStateAction<ModalType>>;
+}) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const stageRef = useRef<any>(null);
   const transformerRef = useRef<any>(null);
@@ -431,8 +440,8 @@ const Canvas = ({ savePainting }: { savePainting: (data: string) => void }) => {
                 <IconTrash size={18} />
               </ActionIcon>
               <Modal
-                opened={opened}
-                onClose={close}
+                opened={activeModal === "clear-canvas"}
+                onClose={() => setActiveModal(null)}
                 size="xs"
                 title={
                   <Title
@@ -450,11 +459,14 @@ const Canvas = ({ savePainting }: { savePainting: (data: string) => void }) => {
                 }
                 centered
               >
-                <Stack gap="xl" mb="md">
+                <Stack mb="md">
                   <Text>Jesteś pewien, że chcesz wyczyścić całą bombkę?</Text>
                 </Stack>
                 <Group mt="xl" w="100%" justify="space-between">
-                  <Button variant="outline" onClick={close}>
+                  <Button
+                    variant="outline"
+                    onClick={() => setActiveModal(null)}
+                  >
                     Anuluj
                   </Button>
                   <Button
@@ -463,7 +475,7 @@ const Canvas = ({ savePainting }: { savePainting: (data: string) => void }) => {
                     onClick={() => {
                       clearCanvas();
                       clearFile();
-                      close();
+                      setActiveModal(null);
                     }}
                   >
                     Wyczyść
