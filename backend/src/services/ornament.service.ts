@@ -37,10 +37,9 @@ export const saveOrnamentData = async (
 
   // Load positions and pick one based on ornament ID
   let position: any = null;
+  let positions: Array<{ top: number; left: number }> = [];
   try {
-    const positions: Array<{ top: number; left: number }> = await fs.readJson(
-      positionsPath
-    );
+    positions = await fs.readJson(positionsPath);
     if (Array.isArray(positions) && positions.length > 0) {
       // Use the ornament ID directly to determine the position index
       const positionIndex = id - 1; // IDs start from 1, so subtract 1 for zero-based index
