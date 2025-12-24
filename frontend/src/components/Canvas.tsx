@@ -84,6 +84,13 @@ const Canvas = ({
       transformerRef.current.nodes([]);
       transformerRef.current.getLayer().batchDraw();
     }
+
+    // Clear Konva stage
+    if (stageRef.current) {
+      const stage = stageRef.current;
+      stage.find("Image").forEach((node: Konva.Node) => node.destroy());
+      stage.draw();
+    }
   };
 
   const computedColorScheme = useComputedColorScheme("light", {
