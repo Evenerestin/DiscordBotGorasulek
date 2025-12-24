@@ -54,22 +54,31 @@ export const saveOrnamentData = async (
     console.warn("Could not load positions file, saving without position");
   }
 
-  // Find the smallest available ID
-  const usedIds = ornaments.map((ornament) => ornament.id);
-  let newId = 1;
-  while (usedIds.includes(newId)) {
-    newId++;
-  }
-
-  const newOrnament = { id: newId, username, position, ornamentData };
-
   const existingIndex = ornaments.findIndex(
     (ornament: { username: string }) => ornament.username === username
   );
+  let newId = 1;
+
   if (existingIndex !== -1) {
-    ornaments[existingIndex] = newOrnament;
+    // If the ornament already exists, retain its ID and position
+    newId = ornaments[existingIndex].id;
+    position = ornaments[existingIndex].position;
+    ornaments[existingIndex] = { id: newId, username, position, ornamentData };
   } else {
-    ornaments.push(newOrnament);
+    // Assign a new ID and position
+    const usedIds = ornaments.map((ornament) => ornament.id);
+    while (usedIds.includes(newId)) {
+      newId++;
+    }
+    if (Array.isArray(positions) && positions.length > 0) {
+      const positionIndex = newId - 1;
+      if (positionIndex < positions.length) {
+        position = positions[positionIndex];
+      } else {
+        console.warn("No available position for ornament ID:", newId);
+      }
+    }
+    ornaments.push({ id: newId, username, position, ornamentData });
   }
 
   await fs.writeJson(ornamentsPath, ornaments);
