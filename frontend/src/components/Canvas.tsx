@@ -577,7 +577,7 @@ const Canvas = ({
                   size={42}
                   disabled={!file}
                   color="red"
-                  onClick={clearFile}
+                  onClick={() => setActiveModal("clear-canvas")}
                 >
                   <IconX size={18} />
                 </ActionIcon>
