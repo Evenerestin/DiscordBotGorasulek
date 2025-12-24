@@ -452,7 +452,12 @@ const Canvas = ({
         <Stack>
           <Group w="100%" justify="space-between">
             <Group justify="center">
-              <ActionIcon me="md" size={42} color="red" onClick={open}>
+              <ActionIcon
+                me="md"
+                size={42}
+                color="red"
+                onClick={() => setActiveModal("clear-canvas")}
+              >
                 <IconTrash size={18} />
               </ActionIcon>
               <Modal
