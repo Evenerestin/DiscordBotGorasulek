@@ -77,7 +77,7 @@ export default function Ornament() {
         setActiveModal={setActiveModal}
       />
       <Modal
-        opened={activeModal !== null}
+        opened={activeModal !== null && activeModal !== "clear-canvas"}
         onClose={() => setActiveModal(null)}
         size="md"
         title={
